@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 import org.booncode.bluepass4.service.BlueService
 import org.booncode.bluepass4.ui.theme.BluePass4Theme
 import java.util.regex.Pattern
-import org.booncode.bluepass4.R
 
 class MainActivity : ComponentActivity() {
     var _manager: BluetoothManager? = null
