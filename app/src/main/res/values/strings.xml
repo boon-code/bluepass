@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">BluePass4</string>
+    <string name="notify_title">BluePass</string>
+    <string name="notify_text">BluePass service</string>
+    <string name="notify_stop">Stop</string>
+    <string name="notify_copy">Copy last</string>
+    <string name="error_bt_adapter_not_enabled">Bluetooth was not enabled. Application will not be able to work.</string>
+</resources>
