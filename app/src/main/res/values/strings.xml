@@ -1,8 +1,23 @@
 <resources>
     <string name="app_name">BluePass4</string>
-    <string name="notify_title">BluePass</string>
-    <string name="notify_text">BluePass service</string>
+    <string name="notify_title">BluePass service</string>
+    <string name="notify_text">Background bridge via Bluetooth</string>
     <string name="notify_stop">Stop</string>
     <string name="notify_copy">Copy last</string>
     <string name="error_bt_adapter_not_enabled">Bluetooth was not enabled. Application will not be able to work.</string>
+
+    <string name="ui_main_bt_scan_button">Choose bluetooth device</string>
+    <string name="ui_main_current_bt_device_name">Device name: %s</string>
+    <string name="ui_main_current_bt_device_address">Device address: %s</string>
+    <string name="ui_main_new_sender_regex_label">Regular expression for sender</string>
+    <string name="ui_main_new_sender_regex_desc">Regular expression that matches the sender of the SMS</string>
+    <string name="ui_main_new_message_regex_label">Regular expression to filter the content</string>
+    <string name="ui_main_new_message_regex_desc">The regular expression must contain exactly one group that matches the code to extract in the message body</string>
+    <string name="ui_main_test_message_regex_label">Test message</string>
+    <string name="ui_main_test_message_parse_result">Parsed result: %s</string>
+    <string name="ui_main_save_filters_button">Save changes</string>
+    <string name="ui_main_reset_filters_button">Reset</string>
+    <string name="ui_bt_dialog_no_adapter">No bluetooth adapter found!</string>
+    <string name="ui_bt_dialog_cancel_button">Cancel</string>
+    <string name="ui_bt_dialog_set_device_toast">Configured device: %s (%s)</string>
 </resources>

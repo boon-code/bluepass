@@ -8,11 +8,8 @@ import android.bluetooth.BluetoothManager
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
-import android.os.Handler
-import android.os.HandlerThread
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import org.booncode.bluepass4.MainActivity
 import org.booncode.bluepass4.MyDataStore
@@ -81,7 +78,7 @@ class BlueService : Service() {
                 stop_intent
             )
             .addAction(android.R.drawable.ic_input_get, getText(R.string.notify_copy), copy_intent)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_bluepass_key)
             .build()
 
         // Notification ID cannot be 0.

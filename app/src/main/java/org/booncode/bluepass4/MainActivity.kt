@@ -10,15 +10,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Message
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -31,12 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.focus.focusModifier
-import kotlinx.coroutines.flow.map
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import org.booncode.bluepass4.service.BlueService
 import org.booncode.bluepass4.ui.theme.BluePass4Theme
 import java.util.regex.Pattern
+import org.booncode.bluepass4.R
 
 class MainActivity : ComponentActivity() {
     var _manager: BluetoothManager? = null
@@ -190,15 +187,23 @@ fun MainScreen(adapter: BluetoothAdapter?) {
                     .padding(all = 8.dp)
                     .fillMaxWidth()
             ) {
-                Text(text = "Device name: ${btDevice.value.name ?: "<not set>"}")
-                Text(text = "Device address: ${btDevice.value.address ?: "<not set>"}")
+                Text(
+                    text = stringResource(R.string.ui_main_current_bt_device_name).format(
+                        btDevice.value.name ?: "<not set>"
+                    )
+                )
+                Text(
+                    text = stringResource(R.string.ui_main_current_bt_device_address).format(
+                        btDevice.value.address ?: "<not set>"
+                    )
+                )
                 Button(
                     onClick = { dialogOpen.value = true },
                     modifier = Modifier
                         .align(alignment = Alignment.CenterHorizontally)
                         .padding(vertical = 4.dp)
                 ) {
-                    Text(text = "Choose bluetooth device")
+                    Text(text = stringResource(R.string.ui_main_bt_scan_button))
                 }
             }
         }
@@ -340,11 +345,11 @@ fun MessageFilterView(
                 checkSaveEnabled()
             },
             label = {
-                Text(text = "Regular expression for sender")
+                Text(text = stringResource(R.string.ui_main_new_sender_regex_label))
             }
         )
         Text(
-            text = "Regular expression that matches the sender of the SMS",
+            text = stringResource(R.string.ui_main_new_sender_regex_desc),
             style = MaterialTheme.typography.overline,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
@@ -357,11 +362,11 @@ fun MessageFilterView(
                 checkSaveEnabled()
             },
             label = {
-                Text(text = "Regular expression to filter the content")
+                Text(text = stringResource(R.string.ui_main_new_message_regex_label))
             }
         )
         Text(
-            text = "The regular expression must contain exactly one group that matches the code to extract in the message body",
+            text = stringResource(R.string.ui_main_new_message_regex_desc),
             style = MaterialTheme.typography.overline,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
@@ -371,10 +376,14 @@ fun MessageFilterView(
                 value = testMessage.value,
                 onValueChange = { testMessage.value = it },
                 label = {
-                    Text(text = "Test message")
+                    Text(text = stringResource(R.string.ui_main_test_message_regex_label))
                 }
             )
-            Text(text = "Parsed result: ${parsedResult.value}")
+            Text(
+                text = stringResource(R.string.ui_main_test_message_parse_result).format(
+                    parsedResult.value
+                )
+            )
         }
         Spacer(modifier = Modifier.padding(vertical = 8.dp))
         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
@@ -383,7 +392,7 @@ fun MessageFilterView(
                 enabled = isSaveEnabled.value,
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
-                Text(text = "Save changes")
+                Text(text = stringResource(R.string.ui_main_save_filters_button))
             }
             Button(
                 onClick = {
@@ -393,7 +402,7 @@ fun MessageFilterView(
                 },
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
-                Text(text = "Reset")
+                Text(text = stringResource(R.string.ui_main_reset_filters_button))
             }
         }
     }
@@ -410,10 +419,10 @@ fun BluetoothDeviceListDialogView(
             if (adapter != null) {
                 BluetoothDeviceList(adapter = adapter, onSelected = onSelected)
             } else {
-                Text(text = "No bluetooth adapter found!")
+                Text(text = stringResource(R.string.ui_bt_dialog_no_adapter))
             }
             Button(onClick = onCancel) {
-                Text(text = "Cancel")
+                Text(text = stringResource(R.string.ui_bt_dialog_cancel_button))
             }
         }
     }
@@ -455,7 +464,6 @@ fun BluetoothDeviceList(
                 discovering.value = true
             },
             onRequestCancel = {
-                Log.d("Compshit", "Is still discovering on cancel: ${adapter.isDiscovering}")
                 cancelDiscover()
             }
         )
@@ -469,7 +477,10 @@ fun BluetoothDeviceList(
 
                         Toast.makeText(
                             context,
-                            "Configured device: ${dev.name} (${dev.address})",
+                            context.getString(R.string.ui_bt_dialog_set_device_toast).format(
+                                dev.name,
+                                dev.address
+                            ),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -538,7 +549,7 @@ fun BluetoothBroadcasts(
     SystemBroadcastReceiver(
         systemAction = BluetoothDevice.ACTION_FOUND,
         onReceive = {
-            Log.i("Compshit", "Received a device")
+            Log.i("BluetoothBroadcasts", "Received a device")
             val dev = it?.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
             if ((dev != null) && (dev.bondState != BluetoothDevice.BOND_BONDED)) {
                 onNewDevice(dev)
@@ -548,7 +559,7 @@ fun BluetoothBroadcasts(
     SystemBroadcastReceiver(
         systemAction = BluetoothAdapter.ACTION_DISCOVERY_FINISHED,
         onReceive = {
-            Log.i("Compshit", "Discover done")
+            Log.i("BluetoothBroadcasts", "Discover done")
             onDiscoverDone()
         }
     )
