@@ -52,38 +52,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        checkSmsPermissions()
-        checkBluetoothScanPermissions()
+        requestPermissionsIfNecessary()
         checkBluetoothEnabled {
             Log.d(TAG, "Bluetooth adapter is ready")
         }
     }
 
-    private fun checkSmsPermissions() {
-        val perm = Manifest.permission.RECEIVE_SMS
-
-        if (!isGranted(perm)) {
-            val permissionRequest =
-                registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-                    if (granted) {
-                        Log.d(TAG, "SMS_RECEIVE permission was granted")
-                    } else {
-                        Log.w(TAG, "SMS_RECEIVE permission was not granted")
-                        Toast.makeText(
-                            this,
-                            "SMS_RECEIVE permission not granted",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            permissionRequest.launch(perm)
-        }
-    }
-
-    private fun checkBluetoothScanPermissions() {
+    private fun requestPermissionsIfNecessary() {
         val perms = arrayOf(
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.RECEIVE_SMS
         )
         if (!perms.all { isGranted(it) }) {
             val permissionRequest =
@@ -100,17 +79,12 @@ class MainActivity : ComponentActivity() {
                     if (!allGranted) {
                         Toast.makeText(
                             this,
-                            "Bluetooth scan not possible: Permissions have been denied",
+                            getString(R.string.main_ui_missing_permissions_toast),
                             Toast.LENGTH_LONG
                         ).show()
                     }
                 }
-            permissionRequest.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
+            permissionRequest.launch(perms)
         }
     }
 

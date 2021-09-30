@@ -20,4 +20,5 @@
     <string name="ui_bt_dialog_no_adapter">No bluetooth adapter found!</string>
     <string name="ui_bt_dialog_cancel_button">Cancel</string>
     <string name="ui_bt_dialog_set_device_toast">Configured device: %s (%s)</string>
+    <string name="main_ui_missing_permissions_toast">App might not work properly: Not all necessary permissions have been granted</string>
 </resources>
