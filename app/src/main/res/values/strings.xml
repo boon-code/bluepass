@@ -7,8 +7,8 @@
     <string name="error_bt_adapter_not_enabled">Bluetooth was not enabled. Application will not be able to work.</string>
 
     <string name="ui_main_bt_scan_button">Choose bluetooth device</string>
-    <string name="ui_main_current_bt_device_name">Device name: %s</string>
-    <string name="ui_main_current_bt_device_address">Device address: %s</string>
+    <string name="ui_main_current_bt_device_name">Device name:</string>
+    <string name="ui_main_current_bt_device_address">Device address:</string>
     <string name="ui_main_new_sender_regex_label">Regular expression for sender</string>
     <string name="ui_main_new_sender_regex_desc">Regular expression that matches the sender of the SMS</string>
     <string name="ui_main_new_message_regex_label">Regular expression to filter the content</string>
@@ -21,4 +21,5 @@
     <string name="ui_bt_dialog_cancel_button">Cancel</string>
     <string name="ui_bt_dialog_set_device_toast">Configured device: %s (%s)</string>
     <string name="main_ui_missing_permissions_toast">App might not work properly: Not all necessary permissions have been granted</string>
+    <string name="notify_title_with_code">BluePass service: code=%s</string>
 </resources>

@@ -15,10 +15,9 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.border
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,15 +26,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
 import org.booncode.bluepass4.service.BlueService
 import org.booncode.bluepass4.ui.theme.BluePass4Theme
 import java.util.regex.Pattern
 
 class MainActivity : ComponentActivity() {
-    var _manager: BluetoothManager? = null
+    private var _manager: BluetoothManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +69,7 @@ class MainActivity : ComponentActivity() {
         )
         if (!perms.all { isGranted(it) }) {
             val permissionRequest =
-                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { it ->
+                registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                     var allGranted = true
                     for (i in it) {
                         if (i.value) {
@@ -110,8 +113,7 @@ class MainActivity : ComponentActivity() {
                                 this,
                                 R.string.error_bt_adapter_not_enabled,
                                 Toast.LENGTH_SHORT
-                            )
-                                .show()
+                            ).show()
                             finish()
                         }
                     }
@@ -128,57 +130,138 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+enum class MainDialog {
+    CHOOSE_BLUETOOTH_DEVICE,
+    FILTER_SETTINGS,
+    CLOSED,
+}
+
 @Composable
 fun MainScreen(adapter: BluetoothAdapter?) {
-    val context = LocalContext.current
-    val btDevice = MyDataStore(context).btDeviceParams.collectAsState(initial = BtDeviceParams())
-    val dialogOpen = remember { mutableStateOf(false) }
+    val openDialog = remember { mutableStateOf(MainDialog.CLOSED) }
 
-    if (dialogOpen.value) {
-        ChooseBluetoothDeviceDialog(
-            adapter = adapter,
-            onDismissRequest = {
-                dialogOpen.value = false
-            }
-        )
-    } else {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            Column(
-                modifier = Modifier
-                    .padding(all = 8.dp)
-                    .border(1.dp, MaterialTheme.colors.primary)
-                    .padding(all = 8.dp)
-                    .fillMaxWidth()
-            ) {
-                MessageFilterSettings()
-            }
-
-            Column(
-                modifier = Modifier
-                    .padding(all = 8.dp)
-                    .border(1.dp, MaterialTheme.colors.primary)
-                    .padding(all = 8.dp)
-                    .fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.ui_main_current_bt_device_name).format(
-                        btDevice.value.name ?: "<not set>"
-                    )
-                )
-                Text(
-                    text = stringResource(R.string.ui_main_current_bt_device_address).format(
-                        btDevice.value.address ?: "<not set>"
-                    )
-                )
-                Button(
-                    onClick = { dialogOpen.value = true },
-                    modifier = Modifier
-                        .align(alignment = Alignment.CenterHorizontally)
-                        .padding(vertical = 4.dp)
-                ) {
-                    Text(text = stringResource(R.string.ui_main_bt_scan_button))
+    when (openDialog.value) {
+        MainDialog.CHOOSE_BLUETOOTH_DEVICE -> {
+            ChooseBluetoothDeviceDialog(
+                adapter = adapter,
+                onDismissRequest = {
+                    openDialog.value = MainDialog.CLOSED
                 }
+            )
+        }
+        MainDialog.FILTER_SETTINGS -> {
+            MessageFilterSettingsDialog(onDismissRequest = {
+                openDialog.value = MainDialog.CLOSED
+            })
+        }
+        MainDialog.CLOSED -> {
+        }
+    }
+
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Column(
+            modifier = Modifier
+                .padding(all = 8.dp)
+                .border(1.dp, MaterialTheme.colors.primary)
+                .padding(all = 8.dp)
+                .fillMaxWidth()
+        ) {
+            MessageFilterOverview()
+            Button(
+                onClick = {
+                    openDialog.value = MainDialog.FILTER_SETTINGS
+                },
+                modifier = Modifier
+                    .padding(all = 8.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                Text(text = "Change message filter")
             }
+        }
+        Column(
+            modifier = Modifier
+                .padding(all = 8.dp)
+                .border(1.dp, MaterialTheme.colors.primary)
+                .padding(all = 8.dp)
+                .fillMaxWidth()
+        ) {
+            BluetoothDeviceOverview()
+            Button(
+                onClick = { openDialog.value = MainDialog.CHOOSE_BLUETOOTH_DEVICE },
+                modifier = Modifier
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .padding(vertical = 4.dp)
+            ) {
+                Text(text = stringResource(R.string.ui_main_bt_scan_button))
+            }
+        }
+        //CodeListView()
+    }
+}
+
+@Composable
+fun CodeListView() {
+    Column(
+        modifier = Modifier
+            .padding(all = 8.dp)
+            .border(1.dp, MaterialTheme.colors.primary)
+            .padding(all = 8.dp)
+            .fillMaxWidth()
+    ) {
+        CodeView("123456")
+        CodeView("654321")
+        CodeView("987654")
+        CodeView("456789")
+        CodeView("000001")
+        CodeView("000002")
+        CodeView("000003")
+        CodeView("000004")
+        /*
+        CodeView("000005")
+        CodeView("000006")
+        CodeView("000007")
+        CodeView("000008")
+        CodeView("000009")
+        CodeView("00000A")
+        CodeView("00000B")
+        CodeView("00000C")
+        CodeView("00000D")
+        CodeView("00000E")
+        CodeView("00000F")
+        CodeView("000010")
+         */
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CodeListViewPreview() {
+    MaterialTheme {
+        CodeListView()
+    }
+}
+
+@Composable
+fun CodeView(code: String) {
+    val context = LocalContext.current
+    val cb = {
+        Toast.makeText(context, "Clicked $code", Toast.LENGTH_SHORT).show()
+    }
+
+    Row(
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        modifier = Modifier
+            .padding(all = 8.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = code,
+        )
+        Button(onClick = { cb() }) {
+            Text(text = "Send again")
+        }
+        Button(onClick = { cb() }) {
+            Text(text = "Copy code")
         }
     }
 }
@@ -188,9 +271,7 @@ fun ChooseBluetoothDeviceDialog(
     adapter: BluetoothAdapter?,
     onDismissRequest: () -> Unit,
 ) {
-    Dialog(
-        onDismissRequest = onDismissRequest,
-    ) {
+    ResizableDialog(onDismissRequest = onDismissRequest) {
         BluetoothDeviceListDialogView(
             adapter = adapter,
             onSelected = { onDismissRequest() },
@@ -224,12 +305,83 @@ fun FakeSms() {
 @Composable
 fun MessageFilterSettingsPreview() {
     BluePass4Theme {
-        MessageFilterSettings()
+        MessageFilterView(
+            msgFilterText = MsgFilterText("Sender", "<Regex>"),
+            onSave = {},
+            onCancel = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun MessageFilterSettingsDialogPreview() {
+    BluePass4Theme {
+        MessageFilterSettingsDialog(onDismissRequest = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MessageFilterOverviewPreview() {
+    BluePass4Theme {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MessageFilterOverview()
+        }
     }
 }
 
 @Composable
-fun MessageFilterSettings() {
+fun MessageFilterOverview() {
+    val context = LocalContext.current
+    val filterText = MyDataStore(context).msgFilterText.collectAsState(initial = MsgFilterText())
+    TwoColumnLabel(
+        label = "Sender pattern:",
+        value = filterText.value.sender_regex ?: ""
+    )
+    TwoColumnLabel(
+        label = "Content pattern:",
+        value = filterText.value.message_regex ?: ""
+    )
+}
+
+@Composable
+fun BluetoothDeviceOverview() {
+    val context = LocalContext.current
+    val btDevice = MyDataStore(context).btDeviceParams.collectAsState(initial = BtDeviceParams())
+    TwoColumnLabel(
+        label = stringResource(id = R.string.ui_main_current_bt_device_name),
+        value = btDevice.value.name ?: "<not set>"
+    )
+    TwoColumnLabel(
+        label = stringResource(R.string.ui_main_current_bt_device_address),
+        value = btDevice.value.address ?: "<not set>"
+    )
+}
+
+@Composable
+fun TwoColumnLabel(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 2.dp)
+            .fillMaxWidth()
+    ) {
+
+        Text(
+            text = label,
+        )
+        Text(
+            text = value,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun MessageFilterSettingsDialog(onDismissRequest: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val ds = MyDataStore(context)
@@ -245,12 +397,17 @@ fun MessageFilterSettings() {
                 ).show()
             }
         }
+        onDismissRequest()
     }
 
-    Column {
+    ResizableDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
         MessageFilterView(
             filterText.value,
             onSave = saveFilter,
+            onCancel = onDismissRequest,
         )
     }
 }
@@ -259,6 +416,7 @@ fun MessageFilterSettings() {
 fun MessageFilterView(
     msgFilterText: MsgFilterText,
     onSave: (MsgFilterText) -> Unit,
+    onCancel: () -> Unit,
 ) {
     val sender = remember { mutableStateOf(msgFilterText.sender_regex ?: "") }
     val message = remember { mutableStateOf(msgFilterText.message_regex ?: "") }
@@ -274,7 +432,7 @@ fun MessageFilterView(
             (msgFilterText.sender_regex != new_sender_pattern) || (msgFilterText.message_regex != new_message_pattern)
         isSaveEnabled.value = contentChanged && patternValid
     }
-    val testMessage = remember { mutableStateOf("") }
+    val testMessage = rememberSaveable { mutableStateOf("") }
     val parsedResult = remember { mutableStateOf("<no match>") }
 
     LaunchedEffect(key1 = msgFilterText.message_regex) {
@@ -299,7 +457,7 @@ fun MessageFilterView(
                     null
                 }
                 if (number != null) {
-                    "matched: ${number}"
+                    "matched: $number"
                 } else {
                     ""
                 }
@@ -310,7 +468,9 @@ fun MessageFilterView(
             "invalid regular expression"
         }
     }
-    Column {
+    Column(
+        modifier = Modifier.padding(vertical = 8.dp)
+    ) {
         OutlinedTextField(
             value = sender.value,
             onValueChange = {
@@ -377,6 +537,12 @@ fun MessageFilterView(
             ) {
                 Text(text = stringResource(R.string.ui_main_reset_filters_button))
             }
+            Button(
+                onClick = onCancel,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                Text(text = "Cancel")
+            }
         }
     }
 }
@@ -387,16 +553,15 @@ fun BluetoothDeviceListDialogView(
     onSelected: (BtDeviceParams) -> Unit,
     onCancel: () -> Unit,
 ) {
-    Card {
-        Column(modifier = Modifier.padding(all = 16.dp)) {
-            if (adapter != null) {
-                BluetoothDeviceList(adapter = adapter, onSelected = onSelected)
-            } else {
-                Text(text = stringResource(R.string.ui_bt_dialog_no_adapter))
-            }
-            Button(onClick = onCancel) {
-                Text(text = stringResource(R.string.ui_bt_dialog_cancel_button))
-            }
+    Column(modifier = Modifier.padding(all = 16.dp)) {
+        if (adapter != null) {
+            BluetoothDeviceList(adapter = adapter, onSelected = onSelected)
+        } else {
+            Text(text = stringResource(R.string.ui_bt_dialog_no_adapter))
+        }
+        Spacer(Modifier.padding(all = 8.dp))
+        Button(onClick = onCancel) {
+            Text(text = stringResource(R.string.ui_bt_dialog_cancel_button))
         }
     }
 }
@@ -429,38 +594,84 @@ fun BluetoothDeviceList(
     val scope = rememberCoroutineScope()
 
     // UI
+    BluetoothDeviceChoiceView(
+        bondedDevices = bondedDevices,
+        scannedDevices = devList,
+        scanning = discovering.value,
+        onRequestScan = {
+            adapter.startDiscovery()
+            discovering.value = true
+        },
+        onCancel = {
+            cancelDiscover()
+        },
+        onSelected = { dev: BtDeviceParams ->
+            cancelDiscover()
+            onSelected(dev)
+            scope.launch {
+                MyDataStore(context).run {
+                    setBtDeviceParams(dev.address!!, dev.name!!)
+
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.ui_bt_dialog_set_device_toast).format(
+                            dev.name,
+                            dev.address
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun BluetoothDeviceChoiceView(
+    bondedDevices: List<BtDeviceParams>,
+    scannedDevices: List<BtDeviceParams>,
+    scanning: Boolean,
+    onRequestScan: () -> Unit = {},
+    onCancel: () -> Unit = {},
+    onSelected: (BtDeviceParams) -> Unit = {},
+) {
     Column {
         BtScanStatus(
-            scanning = discovering.value,
-            onRequestScan = {
-                adapter.startDiscovery()
-                discovering.value = true
-            },
-            onRequestCancel = {
-                cancelDiscover()
-            }
+            scanning = scanning,
+            onRequestScan = onRequestScan,
+            onRequestCancel = onCancel
         )
         BluetoothDeviceView(
-            onSelected = { dev: BtDeviceParams ->
-                cancelDiscover()
-                onSelected(dev)
-                scope.launch {
-                    MyDataStore(context).run {
-                        setBtDeviceParams(dev.address!!, dev.name!!)
-
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.ui_bt_dialog_set_device_toast).format(
-                                dev.name,
-                                dev.address
-                            ),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-            },
+            onSelected = onSelected,
             bondedDevices = bondedDevices,
-            scannedDevices = devList
+            scannedDevices = scannedDevices
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BluetoothDeviceChoiceViewPreview() {
+    val discovering = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    MaterialTheme {
+        BluetoothDeviceChoiceView(
+            bondedDevices = listOf(
+                BtDeviceParams("01:02:03:04:05:06", "My device 1"),
+                BtDeviceParams("F1:E2:D3:04:05:06", "My device 2"),
+            ),
+            scannedDevices = listOf(
+                BtDeviceParams("FE:DC:03:04:5B:A6", "New device 1"),
+            ),
+            scanning = discovering.value,
+            onRequestScan = { discovering.value = true },
+            onCancel = { discovering.value = false },
+            onSelected = {
+                Toast.makeText(context, "Selected: ${it.name} ${it.address}", Toast.LENGTH_SHORT)
+                    .show()
+                discovering.value = false
+            }
         )
     }
 }
@@ -518,7 +729,6 @@ fun BluetoothBroadcasts(
     onDiscoverDone: () -> Unit,
     onNewDevice: (BluetoothDevice) -> Unit,
 ) {
-    val context = LocalContext.current
     SystemBroadcastReceiver(
         systemAction = BluetoothDevice.ACTION_FOUND,
         onReceive = {
@@ -536,6 +746,37 @@ fun BluetoothBroadcasts(
             onDiscoverDone()
         }
     )
+}
+
+// Taken from https://stackoverflow.com/questions/68818202/animatedvisibility-doesnt-expand-height-in-dialog-in-jetpack-compose/68818540#68818540
+// Reported there: https://issuetracker.google.com/issues/194911971?pli=1
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ResizableDialog(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    comp: @Composable () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Card(
+            modifier = modifier
+                .wrapContentHeight()
+                .animateContentSize()
+                .fillMaxWidth(0.9f)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(all = 8.dp)
+                    .border(1.dp, MaterialTheme.colors.primary)
+                    .padding(all = 8.dp)
+            ) {
+                comp()
+            }
+        }
+    }
 }
 
 // Taken from https://developer.android.com/jetpack/compose/interop/interop-apis
