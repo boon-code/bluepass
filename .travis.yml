@@ -1,4 +1,5 @@
 language: android
+dist: trusty
 sudo: false
 jdk: openjdk11
 before_cache:
@@ -22,11 +23,5 @@ android:
   - extra-android-m2repository
   - extra-google-m2repository
   - extra-android-support
-  licenses:
-  - 'android-sdk-preview-license-52d11cd2'
-  - 'android-sdk-license-.+'
-  - 'google-gdk-license-.+'
-before_install:
-  - 'yes | sdkmanager "platforms;android-${ANDROID_API}"'
 script:
 - "./gradlew clean build --stacktrace"
