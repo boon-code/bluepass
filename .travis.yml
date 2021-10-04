@@ -23,5 +23,7 @@ android:
   - extra-android-m2repository
   - extra-google-m2repository
   - extra-android-support
+before_install:
+  - yes | sdkmanager "platforms;android-${ANDROID_API}"
 script:
 - "./gradlew clean build --stacktrace"
