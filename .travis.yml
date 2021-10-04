@@ -26,5 +26,7 @@ android:
   - 'android-sdk-preview-license-52d11cd2'
   - 'android-sdk-license-.+'
   - 'google-gdk-license-.+'
+before_install:
+  - 'yes | sdkmanager "platforms;android-${ANDROID_API}"'
 script:
 - "./gradlew clean build --stacktrace"
