@@ -24,6 +24,7 @@ android:
   - extra-google-m2repository
   - extra-android-support
 before_install:
+  - yes | sdkmanager --licenses
   - yes | sdkmanager "platforms;android-31"
 script:
 - "./gradlew clean build --stacktrace"
