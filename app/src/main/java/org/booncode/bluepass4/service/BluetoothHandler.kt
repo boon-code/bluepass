@@ -15,6 +15,7 @@ class BluetoothHandler(private val _adapter: BluetoothAdapter) {
 
     @Synchronized
     fun stop() {
+        Log.d(TAG, "Requested stopping the thread")
         if (socketThread != null) {
             socketHandler?.cancel()
             socketThread = null

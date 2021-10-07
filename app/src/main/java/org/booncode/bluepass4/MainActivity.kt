@@ -175,7 +175,7 @@ fun MainScreen(adapter: BluetoothAdapter?) {
                     .padding(all = 8.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                Text(text = "Change message filter")
+                Text(text = stringResource(R.string.ui_main_change_filter_settings))
             }
         }
         Column(
@@ -541,7 +541,7 @@ fun MessageFilterView(
                 onClick = onCancel,
                 modifier = Modifier.padding(vertical = 4.dp)
             ) {
-                Text(text = "Cancel")
+                Text(text = stringResource(R.string.ui_main_cancel_filter_button))
             }
         }
     }
@@ -636,15 +636,24 @@ fun BluetoothDeviceChoiceView(
     onSelected: (BtDeviceParams) -> Unit = {},
 ) {
     Column {
+        Text(
+            text = "Select device",
+            modifier = Modifier.padding(all = 10.dp)
+        )
         BtScanStatus(
             scanning = scanning,
             onRequestScan = onRequestScan,
             onRequestCancel = onCancel
         )
-        BluetoothDeviceView(
+        Text(text = "Bonded:")
+        BluetoothDeviceListView(
             onSelected = onSelected,
-            bondedDevices = bondedDevices,
-            scannedDevices = scannedDevices
+            devices = bondedDevices,
+        )
+        Text(text = "Scanned:")
+        BluetoothDeviceListView(
+            onSelected = onSelected,
+            devices = scannedDevices,
         )
     }
 }
@@ -694,20 +703,12 @@ fun BtScanStatus(scanning: Boolean, onRequestScan: () -> Unit, onRequestCancel: 
 }
 
 @Composable
-fun BluetoothDeviceView(
+fun BluetoothDeviceListView(
     onSelected: (BtDeviceParams) -> Unit,
-    bondedDevices: List<BtDeviceParams>,
-    scannedDevices: List<BtDeviceParams>
+    devices: List<BtDeviceParams>,
 ) {
-    Column {
-        Text(text = "Bonded:")
-        for (dev in bondedDevices) {
-            BtItemView(dev = dev, onSelected = onSelected)
-        }
-        Text(text = "Scanned:")
-        for (dev in scannedDevices) {
-            BtItemView(dev = dev, onSelected = onSelected)
-        }
+    for (dev in devices) {
+        BtItemView(dev = dev, onSelected = onSelected)
     }
 }
 
