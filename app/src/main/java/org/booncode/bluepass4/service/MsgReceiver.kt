@@ -75,12 +75,12 @@ class MsgReceiver : BroadcastReceiver() {
 
         Log.v(TAG, String.format("Got message to check: sender=%s, msg=%s", msg.originatingAddress, msg.messageBody))
 
-        if (!(_filter.pattern_sender?.matcher(msg.originatingAddress)?.matches() ?: false)) {
+        if (!(_filter.pattern_sender?.matcher(msg.originatingAddress ?: "")?.matches() ?: false)) {
             Log.d(TAG, "Sender '${msg.originatingAddress}' doesn't match pattern '${_filter.pattern_sender}")
             return
         }
 
-        val m = _filter.pattern_message?.matcher(msg.messageBody)
+        val m = _filter.pattern_message?.matcher(msg.messageBody ?: "")
 
         if (!(m?.matches() ?: false)) {
             Log.d(TAG, "Content doesn't match pattern '${_filter.pattern_message}': ${msg.messageBody}")

@@ -21,7 +21,10 @@
     <string name="ui_bt_dialog_cancel_button">Cancel</string>
     <string name="ui_bt_dialog_set_device_toast">Configured device: %s (%s)</string>
     <string name="main_ui_missing_permissions_toast">App might not work properly: Not all necessary permissions have been granted</string>
-    <string name="notify_title_with_code">BluePass service: code=%s</string>
+    <string name="notify_title_with_code_pending">BluePass service: code=%s (pending…)</string>
+    <string name="notify_title_with_code_ok">BluePass service: code=%s (OK)</string>
+    <string name="notify_title_with_code_failed">BluePass service: code=%s (failed)</string>
+    <string name="notify_title_with_code_failed_retry">BluePass service: code=%s (retrying %s / %s)</string>
     <string name="ui_main_change_filter_settings">Change message filter</string>
     <string name="ui_main_cancel_filter_button">Cancel</string>
 </resources>
