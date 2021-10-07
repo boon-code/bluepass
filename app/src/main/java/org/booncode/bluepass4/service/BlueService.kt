@@ -19,6 +19,7 @@ class BlueService : Service() {
 
     private var _last_code: String = ""
     private var _handler: BluetoothHandler? = null
+    private var _notify_builder: NotificationCompat.Builder? = null
 
     override fun onBind(intent: Intent): IBinder? {
         return null /* not needed */
@@ -68,10 +69,11 @@ class BlueService : Service() {
                 PendingIntent.getService(this, CMD_COPY_LAST_CODE, it, 0)
             }
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        _notify_builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getText(R.string.notify_title))
             .setContentText(getText(R.string.notify_text))
             .setContentIntent(pendingIntent)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
                 getText(R.string.notify_stop),
@@ -79,7 +81,8 @@ class BlueService : Service() {
             )
             .addAction(android.R.drawable.ic_input_get, getText(R.string.notify_copy), copy_intent)
             .setSmallIcon(R.drawable.ic_bluepass_key)
-            .build()
+
+        val notification = _notify_builder!!.build()
 
         // Notification ID cannot be 0.
         startForeground(NOTIFICATION_ID, notification)
@@ -111,6 +114,7 @@ class BlueService : Service() {
             return
         }
         _last_code = code
+        updateNotify(code)
 
         val params = MyDataStore(this).btDeviceParamsBlocking
         if (params.address == null) {
@@ -121,6 +125,15 @@ class BlueService : Service() {
         Log.d(TAG, "Defer work to background thread")
         _handler?.sendCode(params.address, code)
         Log.d(TAG, "Services started with code='$code', address=${params.address}")
+    }
+
+    private fun updateNotify(code: String) {
+        _notify_builder?.let {
+            val man = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notification =
+                it.setContentTitle(getString(R.string.notify_title_with_code).format(code)).build()
+            man.notify(NOTIFICATION_ID, notification)
+        }
     }
 
     private fun copyLastCode() {
