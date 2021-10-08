@@ -156,6 +156,7 @@ class BlueService : Service() {
             CMD_PUSH_CODE -> startPushCode(intent)
             CMD_STOP -> stopThisService()
             CMD_COPY_LAST_CODE -> copyLastCode()
+            CMD_PAIR_BACKGROUND -> startPairInBackground(intent)
             else -> {
                 Log.d(TAG, "No command set -> ignore")
             }
@@ -183,7 +184,6 @@ class BlueService : Service() {
 
         sendCode(params.address, code)
     }
-
 
     private fun sendCode(address: String, code: String, retries: Int = MAX_RETRIES) {
         if (_handler != null) {
@@ -226,6 +226,16 @@ class BlueService : Service() {
         stopSelf()
     }
 
+    private fun startPairInBackground(intent: Intent?) {
+        Log.v(TAG, "startPairInBackground()")
+        val address = intent?.extras?.getString(INTENT_ADDRESS)
+        if (address != null) {
+            Log.d(TAG, "Probe a connection to $address to start pairing process")
+            updateNotify(R.string.notify_title)
+            _handler?.probePairing(address)
+        }
+    }
+
     override fun onDestroy() {
         Log.d(TAG, "onDestroy()")
         _handler?.stop()
@@ -235,12 +245,14 @@ class BlueService : Service() {
     companion object {
         const val INTENT_COMMAND = "command"
         const val INTENT_CODE = "code"
+        const val INTENT_ADDRESS = "address"
 
         // command codes
         const val CMD_PUSH_CODE = 1
         const val CMD_STOP = 2
         const val CMD_COPY_LAST_CODE = 3
         const val CMD_RETRY_SEND = 4
+        const val CMD_PAIR_BACKGROUND = 5
 
         // result codes
         const val SENDING_CODE_OK = 0

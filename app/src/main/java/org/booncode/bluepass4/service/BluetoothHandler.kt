@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothSocket
 import android.os.Handler
 import android.os.Message
 import android.util.Log
-import org.booncode.bluepass4.BluetoothBroadcasts
 import java.io.IOException
 import java.lang.Exception
 import java.util.*
@@ -35,6 +34,22 @@ class BluetoothHandler(
         socketHandler = SocketHandler(dev, code, _handler, retries)
         socketThread = Thread(socketHandler).apply {
             name = "BtThread"
+            start()
+        }
+    }
+
+    @Synchronized
+    fun probePairing(address: String) {
+        Thread(object : Runnable {
+            override fun run() {
+                if (probeConnectionStatic(_adapter, address)) {
+                    Log.i(TAG, "Socket connection to $address suceeded")
+                } else {
+                    Log.i(TAG, "Socket connection to $address failed")
+                }
+            }
+        }).apply {
+            name = "BtPairThread"
             start()
         }
     }
@@ -86,17 +101,10 @@ class BluetoothHandler(
 
         @Synchronized
         private fun tryConnect(): Boolean {
-            val ret = try {
-                throwIfNotRunning()
-                socket = createSocket()
-                socket!!.connect()
-                true
-            } catch (e: IOException) {
-                Log.d(TAG, "tryConnect: Failed to connect: $e")
-                false
-            }
             throwIfNotRunning()
-            return ret
+            socket = connectBtSocket(btDevice)
+            throwIfNotRunning()
+            return (socket != null)
         }
 
         private fun retryConnect(): Boolean {
@@ -173,5 +181,39 @@ class BluetoothHandler(
         const val TAG = "BluetoothHandler"
         const val MAX_CONNECT_RETRIES = 5
         const val CONNECT_TIMEOUT_MS: Long = 1000
+
+        private fun createBtSocket(device: BluetoothDevice): BluetoothSocket? {
+            try {
+                return device.createRfcommSocketToServiceRecord(MY_UUID)
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to create rfcomm socket: $e")
+                return null
+            }
+        }
+
+        private fun connectBtSocket(device: BluetoothDevice): BluetoothSocket? {
+            val socket = createBtSocket(device)
+            return try {
+                socket?.connect()
+                socket
+            } catch (e: IOException) {
+                Log.d(TAG, "tryConnect: Failed to connect: $e")
+                null
+            }
+        }
+
+        fun probeConnectionStatic(adapter: BluetoothAdapter, address: String): Boolean {
+            Log.d(TAG, "Start probing $address")
+            val dev = adapter.getRemoteDevice(address)
+            val socket = connectBtSocket(dev)
+            return if (socket != null) {
+                socket.close()
+                Log.d(TAG, "Probing succeeded")
+                true
+            } else {
+                Log.d(TAG, "Probing failed")
+                false
+            }
+        }
     }
 }
