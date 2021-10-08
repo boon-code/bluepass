@@ -619,7 +619,7 @@ fun BluetoothDeviceList(
                 onSelected(dev)
                 scope.launch {
                     MyDataStore(context).run {
-                        setBtDeviceParams(dev.address, dev.name!!)
+                        setBtDeviceParams(dev.address, dev.name ?: "")
 
                         Toast.makeText(
                             context,
@@ -631,6 +631,16 @@ fun BluetoothDeviceList(
                         ).show()
                     }
                 }
+            }
+        },
+        onStartBonding = { dev ->
+            if (dev.address != null) {
+                context.startForegroundService(
+                    Intent(context, BlueService::class.java).let {
+                        it.putExtra(BlueService.INTENT_COMMAND, BlueService.CMD_PAIR_BACKGROUND)
+                        it.putExtra(BlueService.INTENT_ADDRESS, dev.address)
+                    }
+                )
             }
         }
     )
@@ -644,6 +654,7 @@ fun BluetoothDeviceChoiceView(
     onRequestScan: () -> Unit = {},
     onCancel: () -> Unit = {},
     onSelected: (BtDeviceParams) -> Unit = {},
+    onStartBonding: (BtDeviceParams) -> Unit = {},
 ) {
     Column {
         Text(
@@ -662,7 +673,10 @@ fun BluetoothDeviceChoiceView(
         )
         Text(text = "Scanned:")
         BluetoothDeviceListView(
-            onSelected = onSelected,
+            onSelected = { dev ->
+                onSelected(dev)
+                onStartBonding(dev)
+            },
             devices = scannedDevices,
         )
     }
