@@ -168,8 +168,7 @@ class BluetoothHandler(
     }
 
     companion object {
-        //private const val _UUID_STR = "e4d56fb3-b86d-4572-9b0d-44d483eb1eee"
-        private const val _UUID_STR = "e8e10f95-1a70-4b27-9ccf-02010264e9c8"
+        private const val _UUID_STR = "e4d56fb3-b86d-4572-9b0d-44d483eb1eee"
         val MY_UUID: UUID = UUID.fromString(_UUID_STR)
         const val TAG = "BluetoothHandler"
         const val MAX_CONNECT_RETRIES = 5
