@@ -173,6 +173,5 @@ class BluetoothHandler(
         const val TAG = "BluetoothHandler"
         const val MAX_CONNECT_RETRIES = 5
         const val CONNECT_TIMEOUT_MS: Long = 1000
-        const val MAX_RUN_RETRY = 2
     }
 }

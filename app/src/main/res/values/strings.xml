@@ -27,4 +27,5 @@
     <string name="notify_title_with_code_failed_retry">BluePass service: code=%s (retrying %s / %s)</string>
     <string name="ui_main_change_filter_settings">Change message filter</string>
     <string name="ui_main_cancel_filter_button">Cancel</string>
+    <string name="ui_bt_dialog_set_device_failed_toast">Couldn\'t get device address %s</string>
 </resources>

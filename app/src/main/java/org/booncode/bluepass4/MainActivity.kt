@@ -606,20 +606,30 @@ fun BluetoothDeviceList(
             cancelDiscover()
         },
         onSelected = { dev: BtDeviceParams ->
-            cancelDiscover()
-            onSelected(dev)
-            scope.launch {
-                MyDataStore(context).run {
-                    setBtDeviceParams(dev.address!!, dev.name!!)
+            if (dev.address == null) {
+                Log.e(MainActivity.TAG, "Null address selected -> skipping")
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.ui_bt_dialog_set_device_failed_toast)
+                        .format(dev.name),
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                cancelDiscover()
+                onSelected(dev)
+                scope.launch {
+                    MyDataStore(context).run {
+                        setBtDeviceParams(dev.address, dev.name!!)
 
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.ui_bt_dialog_set_device_toast).format(
-                            dev.name,
-                            dev.address
-                        ),
-                        Toast.LENGTH_LONG
-                    ).show()
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.ui_bt_dialog_set_device_toast).format(
+                                dev.name,
+                                dev.address
+                            ),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
                 }
             }
         }
