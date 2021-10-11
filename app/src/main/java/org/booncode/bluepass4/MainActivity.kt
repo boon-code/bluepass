@@ -4,10 +4,7 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
@@ -17,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -30,6 +28,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.DialogProperties
@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import org.booncode.bluepass4.service.BlueService
 import org.booncode.bluepass4.ui.theme.BluePass4Theme
 import java.util.regex.Pattern
+import androidx.compose.animation.core.animateValue
 
 class MainActivity : ComponentActivity() {
     private var _manager: BluetoothManager? = null
@@ -304,36 +305,6 @@ fun FakeSms() {
             context.startForegroundService(intent)
         }) {
             Text(text = "Send fake message")
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MessageFilterSettingsPreview() {
-    BluePass4Theme {
-        MessageFilterView(
-            msgFilterText = MsgFilterText("Sender", "<Regex>"),
-            onSave = {},
-            onCancel = {}
-        )
-    }
-}
-
-@Preview
-@Composable
-fun MessageFilterSettingsDialogPreview() {
-    BluePass4Theme {
-        MessageFilterSettingsDialog(onDismissRequest = {})
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MessageFilterOverviewPreview() {
-    BluePass4Theme {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            MessageFilterOverview()
         }
     }
 }
@@ -672,15 +643,13 @@ fun BluetoothDeviceChoiceView(
     onStartBonding: (BtDeviceParams) -> Unit = {},
 ) {
     Column {
-        Text(
-            text = "Select device",
-            modifier = Modifier.padding(all = 10.dp)
-        )
-        BtScanStatus(
+        BtScanView(
             scanning = scanning,
             onRequestScan = onRequestScan,
             onRequestCancel = onCancel
         )
+        Divider(color = MaterialTheme.colors.onSecondary)
+        Spacer(Modifier.height(8.dp))
         Divider(color = MaterialTheme.colors.onSecondary)
         BluetoothDeviceListView(
             title = "Paired devices",
@@ -698,7 +667,103 @@ fun BluetoothDeviceChoiceView(
     }
 }
 
-@Preview(showBackground = true)
+@Composable
+fun BtScanningAnimationView(
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.None,
+    contentDescription: String? = null,
+) {
+    val painterStates =
+        listOf(
+            R.drawable.btsearch0,
+            R.drawable.btsearch1,
+            R.drawable.btsearch2,
+            R.drawable.btsearch3,
+            R.drawable.btsearch4,
+        ).map { painterResource(id = it) }
+    val infiniteTransition = rememberInfiniteTransition()
+    val index = infiniteTransition.animateValue(
+        initialValue = 0,
+        targetValue = painterStates.size,
+        typeConverter = Int.VectorConverter,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    Image(
+        painter = painterStates[index.value],
+        contentDescription = contentDescription,
+        contentScale = contentScale,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun BtScanView(
+    scanning: Boolean,
+    onRequestScan: () -> Unit,
+    onRequestCancel: () -> Unit
+) {
+    val imageModifier = Modifier
+        .height(50.dp)
+        .padding(all = 8.dp)
+
+    val scanViewText = derivedStateOf {
+        if (scanning) {
+            "Scanning for devices ..."
+        } else {
+            "Select a device"
+        }
+    }
+
+    Surface(
+        contentColor = MaterialTheme.colors.onSecondary,
+        color = MaterialTheme.colors.secondary,
+    ) {
+        Row(modifier = Modifier.fillMaxWidth()) {
+            if (scanning) {
+                BtScanningAnimationView(
+                    contentScale = ContentScale.FillHeight,
+                    modifier = imageModifier.clickable {
+                        onRequestCancel()
+                    },
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.btsearchoff),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
+                    modifier = imageModifier.clickable {
+                        onRequestScan()
+                    },
+                )
+            }
+            Text(
+                text = scanViewText.value,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(1f)
+            )
+            Switch(
+                checked = scanning,
+                onCheckedChange = {
+                    if (it) {
+                        onRequestScan()
+                    } else {
+                        onRequestCancel()
+                    }
+                },
+                modifier = Modifier
+                    .padding(all = 8.dp)
+                    .align(Alignment.CenterVertically)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun BluetoothDeviceChoiceViewPreview() {
     val discovering = remember { mutableStateOf(false) }
@@ -761,28 +826,34 @@ fun BluetoothDeviceListView(
         return
     }
 
-    Text(
-        text = title,
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colors.secondary
-            )
-            .fillMaxWidth(),
-        color = MaterialTheme.colors.contentColorFor(MaterialTheme.colors.secondary)
+    Surface(
+        color = MaterialTheme.colors.secondary,
+        contentColor = MaterialTheme.colors.onSecondary,
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+    Divider(
+        thickness = 1.dp,
+        color = MaterialTheme.colors.onSecondary
     )
 
+    Spacer(modifier = Modifier.height(2.dp))
+
+    /*
     Divider(
         thickness = 1.dp,
         color = MaterialTheme.colors.primary
     )
+     */
 
     for (dev in devices) {
         BtItemView(dev = dev, onSelected = onSelected)
-        Divider(
-            thickness = 1.dp,
-            color = MaterialTheme.colors.primary
-        )
+        Spacer(Modifier.height(1.dp))
     }
+    Spacer(modifier = Modifier.height(2.dp))
 }
 
 @Composable
