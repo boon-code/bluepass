@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -46,7 +47,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             BluePass4Theme {
                 // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
+                Surface(
+                    color = MaterialTheme.colors.background,
+                    contentColor = MaterialTheme.colors.onBackground
+                ) {
                     MainScreen(_manager?.adapter)
                 }
             }
@@ -271,7 +275,10 @@ fun ChooseBluetoothDeviceDialog(
     adapter: BluetoothAdapter?,
     onDismissRequest: () -> Unit,
 ) {
-    ResizableDialog(onDismissRequest = onDismissRequest) {
+    ResizableDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
         BluetoothDeviceListDialogView(
             adapter = adapter,
             onSelected = { onDismissRequest() },
@@ -404,11 +411,17 @@ fun MessageFilterSettingsDialog(onDismissRequest: () -> Unit) {
         onDismissRequest = onDismissRequest,
         modifier = Modifier.verticalScroll(rememberScrollState())
     ) {
-        MessageFilterView(
-            filterText.value,
-            onSave = saveFilter,
-            onCancel = onDismissRequest,
-        )
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp)
+        ) {
+            MessageFilterView(
+                filterText.value,
+                onSave = saveFilter,
+                onCancel = onDismissRequest,
+            )
+        }
     }
 }
 
@@ -469,7 +482,9 @@ fun MessageFilterView(
         }
     }
     Column(
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth()
     ) {
         OutlinedTextField(
             value = sender.value,
@@ -553,7 +568,7 @@ fun BluetoothDeviceListDialogView(
     onSelected: (BtDeviceParams) -> Unit,
     onCancel: () -> Unit,
 ) {
-    Column(modifier = Modifier.padding(all = 16.dp)) {
+    Column(modifier = Modifier.padding(all = 8.dp)) {
         if (adapter != null) {
             BluetoothDeviceList(adapter = adapter, onSelected = onSelected)
         } else {
@@ -666,13 +681,14 @@ fun BluetoothDeviceChoiceView(
             onRequestScan = onRequestScan,
             onRequestCancel = onCancel
         )
-        Text(text = "Bonded:")
+        Divider(color = MaterialTheme.colors.onSecondary)
         BluetoothDeviceListView(
+            title = "Paired devices",
             onSelected = onSelected,
             devices = bondedDevices,
         )
-        Text(text = "Scanned:")
         BluetoothDeviceListView(
+            title = "New devices",
             onSelected = { dev ->
                 onSelected(dev)
                 onStartBonding(dev)
@@ -688,24 +704,33 @@ fun BluetoothDeviceChoiceViewPreview() {
     val discovering = remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    MaterialTheme {
-        BluetoothDeviceChoiceView(
-            bondedDevices = listOf(
-                BtDeviceParams("01:02:03:04:05:06", "My device 1"),
-                BtDeviceParams("F1:E2:D3:04:05:06", "My device 2"),
-            ),
-            scannedDevices = listOf(
-                BtDeviceParams("FE:DC:03:04:5B:A6", "New device 1"),
-            ),
-            scanning = discovering.value,
-            onRequestScan = { discovering.value = true },
-            onCancel = { discovering.value = false },
-            onSelected = {
-                Toast.makeText(context, "Selected: ${it.name} ${it.address}", Toast.LENGTH_SHORT)
-                    .show()
-                discovering.value = false
-            }
-        )
+    BluePass4Theme {
+        Surface(
+            color = MaterialTheme.colors.surface,
+            contentColor = MaterialTheme.colors.onSurface,
+        ) {
+            BluetoothDeviceChoiceView(
+                bondedDevices = listOf(
+                    BtDeviceParams("01:02:03:04:05:06", "My device 1"),
+                    BtDeviceParams("F1:E2:D3:04:05:06", "My device 2"),
+                ),
+                scannedDevices = listOf(
+                    BtDeviceParams("FE:DC:03:04:5B:A6", "New device 1"),
+                ),
+                scanning = discovering.value,
+                onRequestScan = { discovering.value = true },
+                onCancel = { discovering.value = false },
+                onSelected = {
+                    Toast.makeText(
+                        context,
+                        "Selected: ${it.name} ${it.address}",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                    discovering.value = false
+                }
+            )
+        }
     }
 }
 
@@ -728,23 +753,55 @@ fun BtScanStatus(scanning: Boolean, onRequestScan: () -> Unit, onRequestCancel: 
 
 @Composable
 fun BluetoothDeviceListView(
+    title: String,
     onSelected: (BtDeviceParams) -> Unit,
     devices: List<BtDeviceParams>,
 ) {
+    if (devices.isEmpty()) {
+        return
+    }
+
+    Text(
+        text = title,
+        modifier = Modifier
+            .background(
+                color = MaterialTheme.colors.secondary
+            )
+            .fillMaxWidth(),
+        color = MaterialTheme.colors.contentColorFor(MaterialTheme.colors.secondary)
+    )
+
+    Divider(
+        thickness = 1.dp,
+        color = MaterialTheme.colors.primary
+    )
+
     for (dev in devices) {
         BtItemView(dev = dev, onSelected = onSelected)
+        Divider(
+            thickness = 1.dp,
+            color = MaterialTheme.colors.primary
+        )
     }
 }
 
 @Composable
 fun BtItemView(dev: BtDeviceParams, onSelected: (BtDeviceParams) -> Unit) {
-    Button(onClick = { onSelected(dev) }) {
-        Row {
-            Spacer(Modifier.width(8.dp))
-            Column {
-                Text(text = "name: ${dev.name}")
-                Text(text = "address: ${dev.address}")
-            }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth(),
+        color = MaterialTheme.colors.surface,
+        contentColor = MaterialTheme.colors.onSurface,
+        elevation = 5.dp
+    ) {
+        Column(
+            Modifier
+                .clickable { onSelected(dev) }
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth()
+        ) {
+            Text(text = dev.name ?: "<not set>")
+            Text(text = dev.address ?: "<not set>")
         }
     }
 }
@@ -793,10 +850,9 @@ fun ResizableDialog(
                 .fillMaxWidth(0.9f)
         ) {
             Surface(
-                modifier = Modifier
-                    .padding(all = 8.dp)
-                    .border(1.dp, MaterialTheme.colors.primary)
-                    .padding(all = 8.dp)
+                modifier = Modifier.border(1.dp, MaterialTheme.colors.primary),
+                color = MaterialTheme.colors.background,
+                contentColor = MaterialTheme.colors.onBackground,
             ) {
                 comp()
             }
