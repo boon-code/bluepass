@@ -664,6 +664,24 @@ fun BluetoothDeviceChoiceView(
             },
             devices = scannedDevices,
         )
+        if (!scanning) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .clickable { onRequestScan() },
+                color = MaterialTheme.colors.surface,
+                contentColor = MaterialTheme.colors.onSurface,
+                elevation = 5.dp
+            ) {
+                Text(
+                    text = "Search for more devices ...",
+                    modifier = Modifier
+                        .padding(all = 8.dp)
+                        .fillMaxWidth()
+                )
+            }
+        }
     }
 }
 
