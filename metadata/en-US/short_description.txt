@@ -1,0 +1,1 @@
+BluePass extracts 2FA tokens from SMS and forwards them via Bluetooth
