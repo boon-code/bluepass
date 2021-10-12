@@ -1,0 +1,2 @@
+BluePass extracts two factor authentication codes (2FA) from SMS and sends them
+to a paired device via Bluetooth RFCOMM.
