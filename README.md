@@ -8,3 +8,8 @@ to a paired device via Bluetooth RFCOMM.
 
 This is free and open source software, see LICENSE.
 All imags in this repository are created by the author and may be used as public domain.
+
+
+# F-Droid
+
+I would like to be included in F-Droid 😀
