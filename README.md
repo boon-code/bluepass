@@ -12,4 +12,4 @@ All imags in this repository are created by the author and may be used as public
 
 # F-Droid
 
-I would like to be included in F-Droid 😀
+I would like this app to be included in F-Droid 😀
