@@ -9,7 +9,7 @@ to a paired device via Bluetooth RFCOMM.
 The companion app for the PC can be found here: https://github.com/boon-code/bluepass-server
 
 This is free and open source software, see LICENSE.
-All imags in this repository are created by the author and may be used as public domain.
+All images in this repository are created by the author and may be used as public domain.
 
 
 # F-Droid
