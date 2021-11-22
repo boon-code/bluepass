@@ -4,6 +4,7 @@
     <string name="notify_text">Background bridge via Bluetooth</string>
     <string name="notify_stop">Stop</string>
     <string name="notify_copy">Copy last</string>
+    <string name="notify_retry">Send again</string>
     <string name="error_bt_adapter_not_enabled">Bluetooth was not enabled. Application will not be able to work.</string>
 
     <string name="ui_main_bt_scan_button">Choose bluetooth device</string>

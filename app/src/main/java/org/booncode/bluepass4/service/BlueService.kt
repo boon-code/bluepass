@@ -143,7 +143,7 @@ class BlueService : Service() {
                 stop_intent
             )
             .addAction(android.R.drawable.ic_input_get, getText(R.string.notify_copy), copy_intent)
-            .addAction(android.R.drawable.ic_media_previous, "Send again", retry_intent)
+            .addAction(android.R.drawable.ic_media_previous, getString(R.string.notify_retry), retry_intent)
             .setSmallIcon(R.drawable.ic_bluepass_key_notify)
 
         val notification = _notify_builder!!.build()
