@@ -1,90 +1,54 @@
 <b>Description</b>
 
-BluePass extracts two factor authentication codes (2FA) from SMS and sends them
-to a paired device via Bluetooth RFCOMM. A Qt based companion app
-<a href="https://github.com/boon-code/bluepass-server">bluepass-server</a>
-will receive the 2FA codes and provide them via the system clipboard.
+BluePass extracts two factor authentication codes (2FA) from SMS and sends them to a paired device via Bluetooth RFCOMM. A Qt based companion app <a href="https://github.com/boon-code/bluepass-server">bluepass-server</a> will receive the 2FA codes and provide them via the system clipboard.
 
 
 <b>Use Case</b>
 
-The company I work for is relying on third party services that require to
-authenticate using 2FA. The second factor is an SMS to your mobile phone.
-This app was built for convenience, to avoid having to unlock your phone,
-find the message and then type the received code on the PC.
+The company I work for is relying on third party services that require to authenticate using 2FA. The second factor is an SMS to your mobile phone. This app was built for convenience, to avoid having to unlock your phone, find the message and then type the received code on the PC.
 
 It is not about the time saved, it's about getting rid of robot tasks.
 
 
 <b>Setup</b>
 
-You have to configure parameters to match the sender of the SMS and parse
-the code from the messages sent to you. Currently, regular expressions are
-used for this task. However, a very basic setup will be provided below.
+You have to configure parameters to match the sender of the SMS and parse the code from the messages sent to you. Currently, regular expressions are used for this task. However, a very basic setup will be provided below.
 
-<i>Regular expression for sender</i> has to be set to a regular expression that
-matches all the senders of SMS (as they appear in your chat application).
-Multiple numbers and names can be provided:
+<i>Regular expression for sender</i> has to be set to a regular expression that matches all the senders of SMS (as they appear in your chat application). Multiple numbers and names can be provided:
 <ul>
     <li>To match <i>CompanyA</i>, you might simply put<i>CompanyA</i> into the box</li>
     <li>To match <i>CompanyA</i> and <i>12345678</i>, write <i>(CompanyA|12345678)</i></li>
 </ul>
 
-<i>Regular expression to filter the content</i> has to be set to a regular expression
-that matches the messages you want to catch. Additionally, it has to define one group
-to extract the actual code that has to be sent to the PC.
-
+<i>Regular expression to filter the content</i> has to be set to a regular expression that matches the messages you want to catch. Additionally, it has to define one group to extract the actual code that has to be sent to the PC.
 <ul>
     <li>To match any number, you can use <i>[^\d]*(\d+).*</i></li>
     <li>To match a code only with 6 digits, use: <i>.*(\d{6}).*</i></li>
 </ul>
 
-... as the process of defining a proper regular expression is not that easy, there is
-another text box <i>Test message</i>. You can paste here the content of the SMS that
-you want to match and adjust the regular expression until it gets parsed correctly.
+... as the process of defining a proper regular expression is not that easy, there is another text box <i>Test message</i>. You can paste here the content of the SMS thatyou want to match and adjust the regular expression until it gets parsed correctly.
 
-The last step of the configuration is to pair with the bluetooth adapter of your PC
-and configure the adapter to be used.
+The last step of the configuration is to pair with the bluetooth adapter of your PC and configure the adapter to be used.
 
 
 <b>Operation</b>
 
 <ul>
-    <li>
-        Whenever your mobile phone receives an SMS (and the settings above are
-        configured), this app will try to match the sender and content. If one
-        of the two doesn't match, the message will not be processed any further.
-    </li>
-    <li>
-        If the 2FA code could be extracted, a foreground service will be started
-        (status bar) and the app tries to connect to the configured Bluetooth
-        adapter and sends the code. It retries for some amount of time and reports
-        the status in the status bar. <u>Note</u>: The notification in the status
-        bar doesn't automatically disappear. However, this doesn't consume any
-        resources and can be removed using the <i>Stop</i> button.
-    </li>
-    <li>
-        If the code is required on the mobile phone, it can be copied using the
-        <i>Copy last</i> button.
-    </li>
+    <li>Whenever your mobile phone receives an SMS (and the settings above are configured), this app will try to match the sender and content. If one of the two doesn't match, the message will not be processed any further.</li>
+    <li>If the 2FA code could be extracted, a foreground service will be started (status bar) and the app tries to connect to the configured Bluetooth adapter and sends the code. It retries for some amount of time and reports the status in the status bar. <u>Note</u>: The notification in the status bar doesn't automatically disappear. However, this doesn't consume any resources and can be removed using the <i>Stop</i> button.</li>
+    <li> If the code is required on the mobile phone, it can be copied using the <i>Copy last</i> button.</li>
 </ul>
 
 
 <b>Protocol</b>
 
-The communication is based on very simple primitives using an RFCOMM channel. The
-UUID for the service is <i>e4d56fb3-b86d-4572-9b0d-44d483eb1eee</i>. Extracted codes
-are sent as text (over a secure Bluetooth connection) terminated with a new line
-character. Therefore, codes may not contain any new line characters.
+The communication is based on very simple primitives using an RFCOMM channel. The UUID for the service is <i>e4d56fb3-b86d-4572-9b0d-44d483eb1eee</i>. Extracted codes are sent as text (over a secure Bluetooth connection) terminated with a new line character. Therefore, codes may not contain any new line characters.
 
 
 <b>Future</b>
 
 <ul>
     <li>The protocol will be changed to something more sophisticated and extensible</li>
-    <li>
-        Configuration of the sender should be done through contact providers and
-        not use regular expressions
-    </li>
+    <li>Configuration of the sender should be done through contact providers and not use regular expressions</li>
     <li>Allow to use this app to share text / files with the PC</li>
 </ul>
