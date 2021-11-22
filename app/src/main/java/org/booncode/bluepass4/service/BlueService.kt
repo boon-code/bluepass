@@ -126,6 +126,12 @@ class BlueService : Service() {
                 PendingIntent.getService(this, CMD_COPY_LAST_CODE, it, 0)
             }
 
+        val retry_intent: PendingIntent =
+            Intent(this, BlueService::class.java).let {
+                it.putExtra(INTENT_COMMAND, CMD_RETRY_SEND)
+                PendingIntent.getService(this, CMD_RETRY_SEND, it, 0)
+            }
+
         _notify_builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getText(R.string.notify_title))
             .setContentText(getText(R.string.notify_text))
@@ -137,6 +143,7 @@ class BlueService : Service() {
                 stop_intent
             )
             .addAction(android.R.drawable.ic_input_get, getText(R.string.notify_copy), copy_intent)
+            .addAction(android.R.drawable.ic_media_previous, getString(R.string.notify_retry), retry_intent)
             .setSmallIcon(R.drawable.ic_bluepass_key_notify)
 
         val notification = _notify_builder!!.build()
@@ -153,9 +160,10 @@ class BlueService : Service() {
         super.onStartCommand(intent, flags, startId)
 
         when (cmd) {
-            CMD_PUSH_CODE -> startPushCode(intent)
+            CMD_PUSH_CODE -> startPushCodeFromIntent(intent)
             CMD_STOP -> stopThisService()
             CMD_COPY_LAST_CODE -> copyLastCode()
+            CMD_RETRY_SEND -> retryPushCode()
             CMD_PAIR_BACKGROUND -> startPairInBackground(intent)
             else -> {
                 Log.d(TAG, "No command set -> ignore")
@@ -166,13 +174,25 @@ class BlueService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun startPushCode(intent: Intent?) {
-        Log.v(TAG, "startPushCode()")
+    private fun startPushCodeFromIntent(intent: Intent?) {
         val code = intent?.extras?.getString("code")
         if (code == null) {
             Log.w(TAG, "Service started without code")
             return
         }
+        startPushCode(code)
+    }
+
+    private fun retryPushCode() {
+        if (_last_code.isEmpty()) {
+            Log.w(TAG, "No last code has been received before")
+            return
+        }
+        startPushCode(_last_code)
+    }
+
+    private fun startPushCode(code: String) {
+        Log.v(TAG, "startPushCode()")
         _last_code = code
         updateNotify(R.string.notify_title_with_code_pending, code)
 

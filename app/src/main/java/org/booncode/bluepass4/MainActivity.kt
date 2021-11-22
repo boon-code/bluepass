@@ -289,23 +289,21 @@ fun ChooseBluetoothDeviceDialog(
 }
 
 @Composable
-fun FakeSms() {
+fun TestSmsReceive(code: String, modifier: Modifier) {
     val context = LocalContext.current
-    val number = remember { mutableStateOf("123456") }
-    Column {
-        OutlinedTextField(
-            value = number.value,
-            onValueChange = { number.value = it }
-        )
-        Button(onClick = {
-            val intent = Intent(context, BlueService::class.java)
-            intent.putExtra(BlueService.INTENT_COMMAND, BlueService.CMD_PUSH_CODE)
-            intent.putExtra(BlueService.INTENT_CODE, number.value)
-
-            context.startForegroundService(intent)
-        }) {
-            Text(text = "Send fake message")
-        }
+    Button(
+        onClick = {
+            context.startForegroundService(
+                Intent(context, BlueService::class.java).let {
+                    it.putExtra(BlueService.INTENT_COMMAND, BlueService.CMD_PUSH_CODE)
+                    it.putExtra(BlueService.INTENT_CODE, code)
+                }
+            )
+        },
+        enabled = code.isNotEmpty(),
+        modifier = modifier
+    ) {
+        Text(text = stringResource(R.string.ui_main_test_send_code))
     }
 }
 
@@ -418,6 +416,7 @@ fun MessageFilterView(
     }
     val testMessage = rememberSaveable { mutableStateOf("") }
     val parsedResult = remember { mutableStateOf("<no match>") }
+    val testCode = remember { mutableStateOf("") }
 
     LaunchedEffect(key1 = msgFilterText.message_regex) {
         message.value = msgFilterText.message_regex ?: ""
@@ -430,27 +429,13 @@ fun MessageFilterView(
     }
     LaunchedEffect(testMessage.value, message.value) {
         val pat = MyDataStore.tryCompilePattern(message.value)
-        parsedResult.value = if (pat != null) {
-            val m = pat.matcher(testMessage.value)
-            if (!m.matches()) {
-                "regular expression doesn't match"
-            } else if (m.groupCount() >= 1) {
-                val number = try {
-                    m.group(1)
-                } catch (e: Exception) {
-                    null
-                }
-                if (number != null) {
-                    "matched: $number"
-                } else {
-                    ""
-                }
-            } else {
-                "invalid number of groups: ${m.groupCount()}"
-            }
+        val result = parseCode(pat, testMessage.value)
+        parsedResult.value = if (result.code != null) {
+            "matched: ${result.code}"
         } else {
-            "invalid regular expression"
+            result.error
         }
+        testCode.value = result.code ?: ""
     }
     Column(
         modifier = Modifier
@@ -502,6 +487,12 @@ fun MessageFilterView(
                 text = stringResource(R.string.ui_main_test_message_parse_result).format(
                     parsedResult.value
                 )
+            )
+            TestSmsReceive(
+                code = testCode.value,
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .align(alignment = Alignment.End)
             )
         }
         Spacer(modifier = Modifier.padding(vertical = 8.dp))

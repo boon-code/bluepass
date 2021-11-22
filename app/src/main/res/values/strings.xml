@@ -4,6 +4,7 @@
     <string name="notify_text">Background bridge via Bluetooth</string>
     <string name="notify_stop">Stop</string>
     <string name="notify_copy">Copy last</string>
+    <string name="notify_retry">Send again</string>
     <string name="error_bt_adapter_not_enabled">Bluetooth was not enabled. Application will not be able to work.</string>
 
     <string name="ui_main_bt_scan_button">Choose bluetooth device</string>
@@ -28,4 +29,5 @@
     <string name="ui_main_change_filter_settings">Change message filter</string>
     <string name="ui_main_cancel_filter_button">Cancel</string>
     <string name="ui_bt_dialog_set_device_failed_toast">Couldn\'t get device address %s</string>
+    <string name="ui_main_test_send_code">Test send</string>
 </resources>
