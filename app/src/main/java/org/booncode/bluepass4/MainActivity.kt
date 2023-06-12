@@ -143,7 +143,7 @@ enum class MainDialog {
 
 @Composable
 fun MainScreen(adapter: BluetoothAdapter?) {
-    val openDialog = remember { mutableStateOf(MainDialog.CLOSED) }
+    val openDialog = rememberSaveable { mutableStateOf(MainDialog.CLOSED) }
 
     when (openDialog.value) {
         MainDialog.CHOOSE_BLUETOOTH_DEVICE -> {
@@ -400,9 +400,9 @@ fun MessageFilterView(
     onSave: (MsgFilterText) -> Unit,
     onCancel: () -> Unit,
 ) {
-    val sender = remember { mutableStateOf(msgFilterText.sender_regex ?: "") }
-    val message = remember { mutableStateOf(msgFilterText.message_regex ?: "") }
-    val isSaveEnabled = remember { mutableStateOf(false) }
+    val sender = rememberSaveable { mutableStateOf(msgFilterText.sender_regex ?: "") }
+    val message = rememberSaveable { mutableStateOf(msgFilterText.message_regex ?: "") }
+    val isSaveEnabled = rememberSaveable { mutableStateOf(false) }
     val tryMessagePattern = remember { mutableStateOf<Pattern?>(null) }
     val checkSaveEnabled = {
         val new_sender_pattern = sender.value
@@ -415,8 +415,8 @@ fun MessageFilterView(
         isSaveEnabled.value = contentChanged && patternValid
     }
     val testMessage = rememberSaveable { mutableStateOf("") }
-    val parsedResult = remember { mutableStateOf("<no match>") }
-    val testCode = remember { mutableStateOf("") }
+    val parsedResult = rememberSaveable { mutableStateOf("<no match>") }
+    val testCode = rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(key1 = msgFilterText.message_regex) {
         message.value = msgFilterText.message_regex ?: ""
@@ -548,8 +548,8 @@ fun BluetoothDeviceList(
     adapter: BluetoothAdapter,
     onSelected: (BtDeviceParams) -> Unit,
 ) {
-    val discovering = remember { mutableStateOf(false) }
-    val devList = remember { mutableStateListOf<BtDeviceParams>() }
+    val discovering = rememberSaveable { mutableStateOf(false) }
+    val devList = rememberSaveable { mutableStateListOf<BtDeviceParams>() }
     val bondedDevices = adapter.bondedDevices.map {
         BtDeviceParams(it.address, it.name)
     }
@@ -775,7 +775,7 @@ fun BtScanView(
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun BluetoothDeviceChoiceViewPreview() {
-    val discovering = remember { mutableStateOf(false) }
+    val discovering = rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     BluePass4Theme {
