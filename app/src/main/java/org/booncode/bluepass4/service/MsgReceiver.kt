@@ -1,12 +1,17 @@
 package org.booncode.bluepass4.service
 
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.app.job.JobWorkItem
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.telephony.SmsMessage
 import android.util.Log
 import android.widget.Toast
+import androidx.core.content.getSystemService
 import org.booncode.bluepass4.MsgFilterParams
 import org.booncode.bluepass4.MyDataStore
 import java.lang.Exception
@@ -94,7 +99,7 @@ class MsgReceiver : BroadcastReceiver() {
             return
         }
 
-        startBluePassService(number)
+        startBluePassServiceViaJobService(number)
         Toast.makeText(_context, "Extracted number: $number", Toast.LENGTH_LONG).show()
     }
 
@@ -104,6 +109,19 @@ class MsgReceiver : BroadcastReceiver() {
         intent.putExtra(BlueService.INTENT_CODE, code)
 
         _context?.startForegroundService(intent)
+    }
+
+    private fun startBluePassServiceViaJobService(code: String) {
+        val context = _context ?: return;
+
+        val intent = Intent(context, BlueService::class.java)
+        intent.putExtra(BlueService.INTENT_COMMAND, BlueService.CMD_PUSH_CODE)
+        intent.putExtra(BlueService.INTENT_CODE, code)
+
+        val component = ComponentName(context, MsgReceivedJobService::class.java)
+        val jobInfo = JobInfo.Builder(1, component).build()
+        val jobScheduler = context.getSystemService(JobScheduler::class.java)
+        jobScheduler.enqueue(jobInfo, JobWorkItem(intent, 0, 0))
     }
 
     companion object {
