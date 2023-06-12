@@ -549,7 +549,7 @@ fun BluetoothDeviceList(
     onSelected: (BtDeviceParams) -> Unit,
 ) {
     val discovering = rememberSaveable { mutableStateOf(false) }
-    val devList = rememberSaveable { mutableStateListOf<BtDeviceParams>() }
+    val devList = remember { mutableStateListOf<BtDeviceParams>() }
     val bondedDevices = adapter.bondedDevices.map {
         BtDeviceParams(it.address, it.name)
     }
